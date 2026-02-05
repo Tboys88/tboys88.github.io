@@ -1,4 +1,4 @@
 #EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-STREAM-INF:BANDWIDTH=894100,RESOLUTION=1280x720,
-http://103.160.205.142:9999/stream/channelid/1572314271?profile=pass
+http://103.160.205.142:9999/stream/channelid/1572314271.ts?profile=pass
