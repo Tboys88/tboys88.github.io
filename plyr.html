@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Video Player</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.1/dash.all.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #player-container {
+            width: 90%;
+            max-width: 800px;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            background-color: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="player-container">
+        <video id="video-player" controls preload="auto"></video>
+    </div>
+    <div id="status">Memuat player...</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const videoElement = document.getElementById('video-player');
+            const statusElement = document.getElementById('status');
+            
+            // Mengambil URL dari parameter ?url=
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoUrl = urlParams.get('url');
+
+            if (!videoUrl) {
+                statusElement.innerText = "Error: Tidak ada URL video yang diberikan. Gunakan ?url=LINK_VIDEO";
+                statusElement.style.color = "#ff4a4a";
+                return;
+            }
+
+            statusElement.innerText = `Memutar: ${videoUrl}`;
+
+            // Logika Pemutar Berdasarkan Ekstensi File
+            if (videoUrl.includes('.m3u8')) {
+                // Play HLS (.m3u8)
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(videoElement);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        videoElement.play().catch(e => console.log("Autoplay dicegah browser"));
+                    });
+                } 
+                // Fallback untuk browser yang mendukung HLS secara native (seperti Safari)
+                else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = videoUrl;
+                    videoElement.addEventListener('loadedmetadata', function () {
+                        videoElement.play().catch(e => console.log("Autoplay dicegah browser"));
+                    });
+                }
+            } 
+            else if (videoUrl.includes('.mpd')) {
+                // Play DASH (.mpd)
+                const dashPlayer = dashjs.MediaPlayer().create();
+                dashPlayer.initialize(videoElement, videoUrl, true);
+            } 
+            else {
+                // Play MP4 atau format standar lainnya
+                videoElement.src = videoUrl;
+                videoElement.play().catch(e => console.log("Autoplay dicegah browser"));
+            }
+        });
+    </script>
+</body>
+</html>
